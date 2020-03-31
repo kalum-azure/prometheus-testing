@@ -1,0 +1,32 @@
+version: '3'
+
+networks:
+  monitor:
+    driver: bridge
+
+services:
+  spring-boot:
+    image: "myapp/spring_actuator"
+    ports:
+     - "8090:8090"
+    container_name: spring-boot
+    networks:
+      - monitor
+
+  prometheus:
+    image: "prom/prometheus"
+    ports:
+     - "9090:9090"
+    volumes:
+     - ./prom.yml:/etc/prometheus/prometheus.yml
+    container_name: prometheus
+    networks:
+      - monitor
+
+  grafana:
+     image: "grafana/grafana"
+     ports:
+     - "3000:3000"
+     container_name: grafana
+     networks:
+      - monitor
