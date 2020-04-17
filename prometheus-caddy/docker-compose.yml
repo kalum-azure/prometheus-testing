@@ -49,7 +49,7 @@ services:
     image: google/cadvisor:latest
     # ports:
     #   - 8080:8080
-    command: -logtostderr -docker_only
+    # command: -logtostderr -docker_only
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/rootfs:ro
@@ -58,6 +58,10 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - monitor
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
 
   grafana:
     image: grafana/grafana
