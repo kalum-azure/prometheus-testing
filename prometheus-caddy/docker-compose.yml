@@ -17,8 +17,8 @@ services:
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    ports:
-      - 9100:9100
+    # ports:
+    #   - 9100:9100
     networks:
       - monitor
     deploy:
@@ -38,8 +38,8 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - 9090:9090
+    # ports:
+    #   - 9090:9090
     networks:
       - monitor
     restart: always
@@ -47,8 +47,8 @@ services:
   
   cadvisor:
     image: google/cadvisor:latest
-    ports:
-      - 8080:8080
+    # ports:
+    #   - 8080:8080
     command: -logtostderr -docker_only
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -63,8 +63,8 @@ services:
     image: grafana/grafana
     depends_on:
       - prometheus
-    ports:
-      - 3000:3000
+    # ports:
+    #   - 3000:3000
     volumes:
       - ./grafana/provisioning/:/etc/grafana/provisioning/
     env_file:
