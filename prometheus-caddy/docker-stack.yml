@@ -1,0 +1,106 @@
+version: '3.7'
+
+networks:
+  monitor:
+    driver: overlay
+
+services:
+
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    # ports:
+    #   - 9100:9100
+    networks:
+      - monitor
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.1.0
+    depends_on:
+      - node-exporter
+      - cadvisor
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    # ports:
+    #   - 9090:9090
+    networks:
+      - monitor
+    restart: always
+
+  
+  cadvisor:
+    image: google/cadvisor
+    # ports:
+    #   - 8080:8080
+    command: ["-logtostderr", "-docker_only", "-v=4"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    #   - /var/run/docker.sock:/var/run/docker.sock:ro
+    #   - /:/rootfs:ro
+    #   - /var/run:/var/run:rw
+    #   - /sys:/sys:ro
+    #   - /var/lib/docker/:/var/lib/docker:ro
+
+    networks:
+      - monitor
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - prometheus
+    # ports:
+    #   - 3000:3000
+    volumes:
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.monitoring
+    networks:
+      - monitor
+    restart: always
+
+  caddy:
+    image: stefanprodan/caddy
+    networks:
+      - monitor
+    ports:
+      - "3000:3000"
+      - "9090:9090"
+      - "9093:9093"
+    environment:
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
