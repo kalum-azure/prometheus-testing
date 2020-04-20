@@ -7,8 +7,9 @@ networks:
 services:
 
   node-exporter:
-    build: ./node-exporter
-    image: prom/node-exporter-test
+    image: stefanprodan/swarmprom-node-exporter:v0.16.0
+    networks:
+      - monitor
     environment:
       - NODE_ID={{.Node.ID}}
     volumes:
@@ -16,25 +17,19 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
       - /etc/hostname:/etc/nodename
-    command: 
+    command:
       - '--path.sysfs=/host/sys'
       - '--path.procfs=/host/proc'
       - '--collector.textfile.directory=/etc/node-exporter/'
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
       - '--no-collector.ipvs'
-      # - '--path.procfs=/host/proc' 
-      # - '--path.sysfs=/host/sys'
-      # - '--collector.textfile.directory=/etc/node-exporter/'
-      # - --collector.filesystem.ignored-mount-points
-      # - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    # ports:
-    #   - 9100:9100
-    networks:
-      - monitor
     deploy:
       mode: global
-      restart_policy:
-          condition: on-failure
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
 
   prometheus:
     image: prom/prometheus:v2.1.0
