@@ -61,7 +61,8 @@ services:
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-
+      - /dev/disk/:/dev/disk:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     #   - /var/run/docker.sock:/var/run/docker.sock:ro
     #   - /:/rootfs:ro
     #   - /var/run:/var/run:rw
