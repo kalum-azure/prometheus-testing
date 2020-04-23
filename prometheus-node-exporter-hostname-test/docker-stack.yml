@@ -7,7 +7,7 @@ networks:
 services:
 
   node-exporter:
-    image: stefanprodan/swarmprom-node-exporter:v0.16.0
+    image: swarm/node-exporter:1.0.0
     networks:
       - monitor
     environment:
@@ -54,15 +54,14 @@ services:
     image: google/cadvisor
     # ports:
     #   - 8080:8080
-    command: ["-logtostderr", "-docker_only", "-v=4"]
+    command: ["-logtostderr", "-docker_only"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/rootfs:ro
-      - /var/run:/var/run
+      - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
     #   - /var/run/docker.sock:/var/run/docker.sock:ro
     #   - /:/rootfs:ro
     #   - /var/run:/var/run:rw
